@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document Search Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              900: '#0c4a6e',
+            }
+          },
+          fontFamily: { sans: ['Outfit', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; }
+    .doc-card { transition: all 0.2s ease-in-out; }
+    .doc-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+  </style>
+</head>
+<body class="text-slate-800">
+
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <header class="mb-10 text-center">
+      <div class="inline-flex items-center justify-center p-3 bg-brand-100 rounded-full mb-4">
+        <i data-lucide="folder-search" class="w-8 h-8 text-brand-600"></i>
+      </div>
+      <h1 class="text-4xl font-bold text-slate-900 mb-3">Google Drive Document Search</h1>
+      <p class="text-slate-500 max-w-2xl mx-auto">Instant search and preview for all 151 official documents and forms.</p>
+    </header>
+
+    <!-- Search Bar -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-8 sticky top-4 z-10">
+      <div class="relative">
+        <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5"></i>
+        <input type="text" id="searchInput" placeholder="Search by document name, keyword, or category (e.g. Salary, Leave, DNA)..." 
+          class="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-xl text-lg focus:ring-2 focus:ring-brand-500 focus:bg-white outline-none transition-all">
+      </div>
+    </div>
+
+    <!-- Category Filters -->
+    <div class="flex flex-wrap gap-2 mb-8 justify-center" id="categoryFilters">
+      <button class="px-4 py-2 rounded-full bg-brand-600 text-white font-medium text-sm transition-colors filter-btn" data-cat="all">All Documents</button>
+      <button class="px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium text-sm transition-colors filter-btn" data-cat="leave">Leave / Chhutti</button>
+      <button class="px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium text-sm transition-colors filter-btn" data-cat="salary">Salary / Pension</button>
+      <button class="px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium text-sm transition-colors filter-btn" data-cat="rules">Rules / Acts</button>
+      <button class="px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium text-sm transition-colors filter-btn" data-cat="other">Other Forms</button>
+    </div>
+
+    <!-- Results count -->
+    <div class="text-sm text-slate-500 mb-4 font-medium" id="resultsCount">Loading documents...</div>
+
+    <!-- Document Grid -->
+    <div id="documentGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Cards rendered here via JS -->
+    </div>
+  </div>
+
+  <script>
+    // Load the documents list directly
+    const ALL_DOCS = [
+  { id: '1rjX3-qMx9q8qevC9iH5SW4d0be9Bf9Pe', name: 'धनराशि अनुग्रह अनुदान.pdf', desc: 'Location: Anugrah Anudan\\\\धनराशि अनुग्रह अनुदान.pdf', category: 'other' },
+  { id: '1GvZwpIUqoJAUZ4xZYcMz_i97RBO7Ibxw', name: 'DNA 001.jpg', desc: 'Location: DNA PRAROOP\\\\DNA 001.jpg', category: 'other' },
+  { id: '10-GTqew8V3b_98xUg3HxqC-mxofOEpdb', name: 'DNA 002.jpg', desc: 'Location: DNA PRAROOP\\\\DNA 002.jpg', category: 'other' },
+  { id: '1zS3OboqeQZLVi5L7uAQyJiffrs2aiOns', name: 'DNA 003.jpg', desc: 'Location: DNA PRAROOP\\\\DNA 003.jpg', category: 'other' },
+  { id: '1ft6Kxg2HCwlv_HTGk7Hc6Jtot4YdMd_f', name: 'DNA 004.jpg', desc: 'Location: DNA PRAROOP\\\\DNA 004.jpg', category: 'other' },
+  { id: '1S9GCKlemOn5Vdqq2hdzlKsXXAgOQrAin', name: 'DNA 005.jpg', desc: 'Location: DNA PRAROOP\\\\DNA 005.jpg', category: 'other' },
+  { id: '1m8Csa0qEFKerDaZEhEV5HjODjnDPoksF', name: 'DNA 006.jpg', desc: 'Location: DNA PRAROOP\\\\DNA 006.jpg', category: 'other' },
+  { id: '1QFIt4I4YU0nXGzSSnSt1lYJ5Qp9_tWGX', name: 'DNA Format lucknow.pdf', desc: 'Location: DNA PRAROOP\\\\DNA Format lucknow.pdf', category: 'other' },
+  { id: '15yUyjNxBi7xwcrosmgGqxkayA1fcTUwf', name: 'Thumbs.db', desc: 'Location: DNA PRAROOP\\\\Thumbs.db', category: 'other' },
+  { id: '1mtI3VV0Oa1WbCJFCBcAi-1gboBJ6S8Fa', name: 'रिमाण्डर  विधि विज्ञान.docx', desc: 'Location: DNA PRAROOP\\\\रिमाण्डर  विधि विज्ञान.docx', category: 'other' },
+  { id: '1EYRXBZRAVECPJgDFsAxWFsJe0qBGAzK3', name: 'विधि विज्ञान प्रयोग शाला आगरा.docx', desc: 'Location: DNA PRAROOP\\\\विधि विज्ञान प्रयोग शाला आगरा.docx', category: 'other' },
+  { id: '1zJ3NgzrVqInV8QtQQRfJ0jrjuD3I3Y5V', name: 'AnnexureH.pdf', desc: 'Location: GO\\\\AnnexureH.pdf', category: 'other' },
+  { id: '1Ixm6igdtk0z17gMzEhzSqtbO0xfUpFBE', name: 'Digital DL GO.pdf', desc: 'Location: GO\\\\Digital DL GO.pdf', category: 'other' },
+  { id: '1mDR43Ulvalemp8c7useFRgMY6wsDRt05', name: 'GH RH in Leaves.pdf', desc: 'Location: GO\\\\GH RH in Leaves.pdf', category: 'leave' },
+  { id: '1Sd5S2NYC2LVwQhvzr0MOX-oZ8Swx_dHA', name: 'Husband wife GO TRANSFER UP.pdf', desc: 'Location: GO\\\\Husband wife GO TRANSFER UP.pdf', category: 'other' },
+  { id: '1YB1kIUNHDgqS01z6BvTjBbDMSpY-4k0v', name: 'Passport for Employees_.pdf', desc: 'Location: GO\\\\Passport for Employees_.pdf', category: 'other' },
+  { id: '1LLESzDzZhWVH8jT-vMeDPK3OP_x8QLrM', name: 'Trasfar go.pdf', desc: 'Location: GO\\\\Trasfar go.pdf', category: 'other' },
+  { id: '1TbrIR7QXN9_GULebttm9sbCmCikEWqRq', name: 'ViewGOPDF_list_user - 2022-11-07T172819.986.pdf', desc: 'Location: GO\\\\ViewGOPDF_list_user - 2022-11-07T172819.986.pdf', category: 'other' },
+  { id: '1IwLQ3YJQngqG6RG37sn7g2yGF4RisTWP', name: 'IMG-20240303-WA0007.jpg', desc: 'Location: HRA\\\\Others file 🗃️\\\\IMG-20240303-WA0007.jpg', category: 'other' },
+  { id: '1J-xkjeJzUQqQsYpVs7_oXtbG32nTRG1a', name: 'IMG-20240303-WA0008.jpg', desc: 'Location: HRA\\\\Others file 🗃️\\\\IMG-20240303-WA0008.jpg', category: 'other' },
+  { id: '1IdLHI4OgCvfoNma8QoU8ptrSKATvbeyY', name: 'IMG-20240303-WA0009.jpg', desc: 'Location: HRA\\\\Others file 🗃️\\\\IMG-20240303-WA0009.jpg', category: 'other' },
+  { id: '1IroruRXtizFtYasItVnkwWFaT1L97cHc', name: 'IMG-20240303-WA0010.jpg', desc: 'Location: HRA\\\\Others file 🗃️\\\\IMG-20240303-WA0010.jpg', category: 'other' },
+  { id: '1IxvNary-AR9qp1v1fKlBcLwhpWv3VG_2', name: 'IMG-20240303-WA0011.jpg', desc: 'Location: HRA\\\\Others file 🗃️\\\\IMG-20240303-WA0011.jpg', category: 'other' },
+  { id: '1JG6zRVUXdGMtmVVyZzpNy1gTuBYLfeuu', name: 'IMG-20240303-WA0012.jpg', desc: 'Location: HRA\\\\Others file 🗃️\\\\IMG-20240303-WA0012.jpg', category: 'other' },
+  { id: '1JFsJPBDuZcXaFTsCdDr839TCfYneSxTv', name: 'IMG-20240303-WA0013.jpg', desc: 'Location: HRA\\\\Others file 🗃️\\\\IMG-20240303-WA0013.jpg', category: 'other' },
+  { id: '1IvbSjc6QNyrZPVkARdrWzF3EXzbpeGn-', name: 'IMG-20240303-WA0014.jpg', desc: 'Location: HRA\\\\Others file 🗃️\\\\IMG-20240303-WA0014.jpg', category: 'other' },
+  { id: '1I_NQ1YOXjUomh1qgoxoZk_QjoXRq0wX3', name: 'IMG-20240303-WA0015.jpg', desc: 'Location: HRA\\\\Others file 🗃️\\\\IMG-20240303-WA0015.jpg', category: 'other' },
+  { id: '1iWeiNZ5Q_vLUHHtJCNQi9hT4j-O4pNv_', name: '-6165545928912650924_121.jpg', desc: 'Location: HRA\\\\-6165545928912650924_121.jpg', category: 'other' },
+  { id: '1IUQ4wpbj0N4ylIP0DFzhvaF9WaFdezhn', name: '16_8_2019_2.pdf', desc: 'Location: HRA\\\\16_8_2019_2.pdf', category: 'other' },
+  { id: '11MtOE4O5HWfWrXLaZ2PjhbtvTaTu8Uuc', name: 'HRA निर्देश.pdf', desc: 'Location: HRA\\\\HRA निर्देश.pdf', category: 'other' },
+  { id: '1fcqkfg0bzMlSEhf-WdMXW9dDw9SD8Z1P', name: 'leave rule.pdf', desc: 'Location: Leave Travelling Allowance अवकाश यात्रा भत्ता\\\\leave rule.pdf', category: 'leave' },
+  { id: '1_U8gnRR3eaIeqn_qOw-3PsX9gW9l-u_2', name: 'अवकाश यात्रा भत्ता.pdf', desc: 'Location: Leave Travelling Allowance अवकाश यात्रा भत्ता\\\\अवकाश यात्रा भत्ता.pdf', category: 'leave' },
+  { id: '1ZUJg6wINB-NRWg15dbzKVraz9eOmeds7', name: 'समस्त अवकाश के नियम.pdf', desc: 'Location: Leave Travelling Allowance अवकाश यात्रा भत्ता\\\\समस्त अवकाश के नियम.pdf', category: 'leave' },
+  { id: '1Qnw5ahV7S6-EVc_2VPd_HNMQyco3pvTB', name: 'All Profarma and Instruction.pdf', desc: 'Location: Medical\\\\All Profarma and Instruction.pdf', category: 'other' },
+  { id: '1pBvLSutL2BpXeS6tgxjWR0RtqMLA_LKI', name: 'Emergency certificate profarma.docx', desc: 'Location: Medical\\\\Emergency certificate profarma.docx', category: 'other' },
+  { id: '1DrOyGVrzyAUlooBDM50Ab98UJcIMZsAa', name: 'New CDR Request format Annexure IX.pdf', desc: 'Location: New praproop under BNS, BNSS, BSA\\\\New CDR Request format Annexure IX.pdf', category: 'rules' },
+  { id: '11W_T5cXtdSjTbj_OSYlDfXtJ2R4mO0Yk', name: '170 नोटिस.pdf', desc: 'Location: Notices\\\\170 नोटिस.pdf', category: 'other' },
+  { id: '1SRIEAz5DnJUvdqFwT9fyZwjrS2da5bZW', name: '41 ए नोटिस.docx', desc: 'Location: Notices\\\\41 ए नोटिस.docx', category: 'other' },
+  { id: '1Tff-418ycll4mm0F8nHVavWyTPak6KnJ', name: 'NATICE 41@ 170Cr.pc @ PRAROOP.docx', desc: 'Location: Notices\\\\NATICE 41@ 170Cr.pc @ PRAROOP.docx', category: 'other' },
+  { id: '1oC5ApIhw8tqmJ0Alck4ENsSqjG3JKCO8', name: 'notice 111 crpc.docx', desc: 'Location: Notices\\\\notice 111 crpc.docx', category: 'other' },
+  { id: '1N3hr785SRYhBtymDCs1wiRHz9CfyIygq', name: 'Notice 170 द0प्र0सं0.docx', desc: 'Location: Notices\\\\Notice 170 द0प्र0सं0.docx', category: 'other' },
+  { id: '1TyfPD2taWzKtMHtWgE11pJIcvy_8ExiI', name: 'Notice 41क crpc.docx', desc: 'Location: Notices\\\\Notice 41क crpc.docx', category: 'other' },
+  { id: '18ZrqLtUr52WVxeMHec2pylzpDZVPOG-a', name: 'notice hotel l.docx', desc: 'Location: Notices\\\\notice hotel l.docx', category: 'other' },
+  { id: '1WFvT4n37UOD-gQ_bQ80hdp_dklvwzGG_', name: 'Notice वादी 173(2).docx', desc: 'Location: Notices\\\\Notice वादी 173(2).docx', category: 'other' },
+  { id: '1Saoa7O5ECjRD4QBMLXgY99H49gmMcJQO', name: 'नोटिस सफीना.docx', desc: 'Location: Notices\\\\नोटिस सफीना.docx', category: 'other' },
+  { id: '1PMYp5lgG11f_zcfu_bMuI8kTFwYyd194', name: 'Home district change rule (1).PDF', desc: 'Location: RULES\\\\Home district change rule (1).PDF', category: 'rules' },
+  { id: '1r9zE6fKZOoah0lN6n2ur13l1w-l0SG4_', name: 'Leave Travelling_RULES_1996.pdf', desc: 'Location: RULES\\\\Leave Travelling_RULES_1996.pdf', category: 'leave' },
+  { id: '1zhGKxMJRUXncLzV_bn3TIjFBqwoPK5NT', name: 'UP-Police-Rules-2106.pdf', desc: 'Location: RULES\\\\UP-Police-Rules-2106.pdf', category: 'rules' },
+  { id: '1Vj7aC9L0_wE63TBD5zh11GwIIsh9TiA5', name: 'upGov_appeal1999.pdf', desc: 'Location: RULES\\\\upGov_appeal1999.pdf', category: 'rules' },
+  { id: '1LZdx_bZHsBVppNk25eGWMMNLgjuSo7mU', name: 'Process of Check Sallery SLIP (1).pdf', desc: 'Location: Salary Slip\\\\Process of Check Sallery SLIP (1).pdf', category: 'salary' },
+  { id: '1_sCdbu7dcf3nTXMWmrrqvP88Tu_DjlSQ', name: 'New Doc 09-29-2024 22.53.pdf', desc: 'Location: अवकाश यात्रा रियायत (एलटीसी) के संबंध में\\\\New Doc 09-29-2024 22.53.pdf', category: 'other' },
+  { id: '1_xiShdge1ayvdVvG07BbHIv1Wd_WHcft', name: 'New Doc 09-29-2024 22.54.pdf', desc: 'Location: अवकाश यात्रा रियायत (एलटीसी) के संबंध में\\\\New Doc 09-29-2024 22.54.pdf', category: 'other' },
+  { id: '1_uEcdIJlqJCrvrM4K-DeZYWz8br9LnZM', name: 'एलटीसी आवेदन प्रपत्र(1).pdf', desc: 'Location: अवकाश यात्रा रियायत (एलटीसी) के संबंध में\\\\एलटीसी आवेदन प्रपत्र(1).pdf', category: 'other' },
+  { id: '1Our-Om1rhFv8VZJ8sAFPlQ77zyZzib7G', name: 'उत्तर प्रदेश मृतक आश्रित भर्ती नियमावली', desc: 'Location: मृतक आश्रित नियमावली एवं शासनादेश\\\\उत्तर प्रदेश मृतक आश्रित भर्ती नियमावली', category: 'other' },
+  { id: '1Oyc1Ift4dsvzY7M2vIB6DPtVSZmSxSiM', name: 'उत्तर प्रदेश मृतक आश्रित सम्बन्धी शासनादेश संख्या', desc: 'Location: मृतक आश्रित नियमावली एवं शासनादेश\\\\उत्तर प्रदेश मृतक आश्रित सम्बन्धी शासनादेश संख्या', category: 'other' },
+  { id: '1PTo5Z1PshXPzWeBVkGnU_kU9-RxUHuaF', name: 'मृतक आश्रित सेवायोजन सम्बन्धी पुलिस मुख्यालय के दिशा निर्देश 2015.pdf', desc: 'Location: मृतक आश्रित नियमावली एवं शासनादेश\\\\मृतक आश्रित सेवायोजन सम्बन्धी पुलिस मुख्यालय के दिशा निर्देश 2015.pdf', category: 'other' },
+  { id: '1PDXm6_TBLhZjciY8ltkPjvDHwZebUam7', name: 'मृतक आश्रित सेवायोजन सम्बन्धी हाई कोर्ट इलाहाबाद के दिशा निर्देश 2015.pdf', desc: 'Location: मृतक आश्रित नियमावली एवं शासनादेश\\\\मृतक आश्रित सेवायोजन सम्बन्धी हाई कोर्ट इलाहाबाद के दिशा निर्देश 2015.pdf', category: 'other' },
+  { id: '1JAC8hVfg8GJCUkQ-f6DLMoV584aB70qf', name: '151 CRPC चालानी.jpeg', desc: 'Location: 151 CRPC चालानी.jpeg', category: 'other' },
+  { id: '1lTmysNEvPB3g6IxvXSninyE-s-A3d7o_', name: '203mv Act...docx', desc: 'Location: 203mv Act...docx', category: 'rules' },
+  { id: '1TRWzQREy4wZLiHHBf7VMwcGTP_6rHr1T', name: '_Pension_gratuity.pdf', desc: 'Location: _Pension_gratuity.pdf', category: 'salary' },
+  { id: '1wAWBnLyDgsbkquSppZy0qE3DmRFj_5Jj', name: 'A category medical certificate.pdf', desc: 'Location: A category medical certificate.pdf', category: 'other' },
+  { id: '1LZ9Ho4dFFr-C9W1zb-kw9k9--RAUJSHY', name: 'A CATEGORY MEDICAL.pdf', desc: 'Location: A CATEGORY MEDICAL.pdf', category: 'other' },
+  { id: '15oZX4dhFh6xm9V4Srj8SQcNYMBlwEskM', name: 'acts and sections.pdf', desc: 'Location: acts and sections.pdf', category: 'rules' },
+  { id: '1HGhK3rcjryCy06N3ZAaDASg3s-IGwk1v', name: 'All police Station No. and Email 2020.pdf', desc: 'Location: All police Station No. and Email 2020.pdf', category: 'other' },
+  { id: '10uDpDN5Qx7kA_SlLUSsRuFia6t2_50Yt', name: 'Awakash yatra suvidha.pdf', desc: 'Location: Awakash yatra suvidha.pdf', category: 'other' },
+  { id: '1lLdEjMV4nHiadEcmSf318XZCZTlP-yef', name: 'Axis Bank Defence Salary Package.pdf', desc: 'Location: Axis Bank Defence Salary Package.pdf', category: 'salary' },
+  { id: '1JfXxDeyrcp_OiuvfuD98Odbi4ieM7X6c', name: 'call diversion report.docx', desc: 'Location: call diversion report.docx', category: 'other' },
+  { id: '160MHQUoY5jEck28R153iMsYqtCZ3sQel', name: 'Cashless Hospital UP-1.pdf', desc: 'Location: Cashless Hospital UP-1.pdf', category: 'other' },
+  { id: '1jZqTaKmLE4Gg9qJhP_AH48U60ivtqDzY', name: 'citizen charter board.docx', desc: 'Location: citizen charter board.docx', category: 'other' },
+  { id: '1I888Wlhrf2iNr5zqr2jP48LHYHlRz8WC', name: 'CL_के_मध्य_में_पड़ने_वाले_अकार्य_दिवस_.PDF', desc: 'Location: CL_के_मध्य_में_पड़ने_वाले_अकार्य_दिवस_.PDF', category: 'other' },
+  { id: '1hcBQV2fJGnQRZORa5AxPNiEufC4bdhrh', name: 'Const_rules-2015.pdf', desc: 'Location: Const_rules-2015.pdf', category: 'rules' },
+  { id: '16pDZQQfdlvE3rMXTkXqap0erps5cZCXB', name: 'constable_niymavali2015_220305_045816_220824_223303.pdf', desc: 'Location: constable_niymavali2015_220305_045816_220824_223303.pdf', category: 'other' },
+  { id: '1lu2qbOuU0EIork0x2BfTJfqrz6CEvTtP', name: 'Copy of डी० ए० दर .pdf', desc: 'Location: Copy of डी० ए० दर .pdf', category: 'other' },
+  { id: '1K89uP1kFhkpRg1nNxfmskrmKXWyxT6Q7', name: 'EL NAKSHA.docx', desc: 'Location: EL NAKSHA.docx', category: 'other' },
+  { id: '1B_cS4cmCiFzP5ftHMDW8K7JxrAbnFD0b', name: 'FCR Naksha..docx', desc: 'Location: FCR Naksha..docx', category: 'other' },
+  { id: '1Jhf46APtIwuQBIHbWSBdPEtrvoGDWHsg', name: 'Flag code of India (Hindi) pdf.pdf', desc: 'Location: Flag code of India (Hindi) pdf.pdf', category: 'other' },
+  { id: '136yAYisrhOkIucc0WPTvjq2mpR79knAl', name: 'FORM NO. 54.docx', desc: 'Location: FORM NO. 54.docx', category: 'other' },
+  { id: '1tl2IRmpXDxbV5KvfGszzzE8xc_yxY10E', name: 'group insurance.pdf', desc: 'Location: group insurance.pdf', category: 'other' },
+  { id: '1bavRjRCv2YltetNcYvxmujQlUSPVfkZC', name: 'gumsuda jipnet praroop.docx', desc: 'Location: gumsuda jipnet praroop.docx', category: 'salary' },
+  { id: '1FH5IzdUBFBMcZaagobksFYCsel13X4u4', name: 'Home district change rule.PDF', desc: 'Location: Home district change rule.PDF', category: 'rules' },
+  { id: '16LEQJMzYHitgdIdQCxoBhqzT0iE5-5ZJ', name: 'HRA 2022.pdf', desc: 'Location: HRA 2022.pdf', category: 'other' },
+  { id: '1tgHiB6qnNOWFAcucEG4uMDj4sNaMAvZN', name: 'HRA praroop.pdf', desc: 'Location: HRA praroop.pdf', category: 'other' },
+  { id: '1KWNNSA7Ol1GDpjO0SHDLjKJQtziOqanH', name: 'I Card Praroop.docx', desc: 'Location: I Card Praroop.docx', category: 'other' },
+  { id: '1YroRvTHbdT21t3QcY7qB3zlSOqY3rPjD', name: 'ID Card Praroop.pdf', desc: 'Location: ID Card Praroop.pdf', category: 'other' },
+  { id: '1tacFpXsPHFGrAwXCe3oPZXZbR8rp46P3', name: 'IMG_20221001_134103_191.jpg', desc: 'Location: IMG_20221001_134103_191.jpg', category: 'other' },
+  { id: '1wlv2ICnpZ8v5JwSw6plzd1A7tubSMB8G', name: 'IMPORTANT FORMS.pdf', desc: 'Location: IMPORTANT FORMS.pdf', category: 'other' },
+  { id: '1UiSWRVHyq5FVnLpcan8Y0MpxoktwlcJl', name: 'medical proforma sg pgi(1).pdf', desc: 'Location: medical proforma sg pgi(1).pdf', category: 'other' },
+  { id: '1Hp39w50z6URl3xEKAtH-ax5UIk6P_832', name: 'medical proforma sg pgi.pdf', desc: 'Location: medical proforma sg pgi.pdf', category: 'other' },
+  { id: '1Fz0EVLz8CCMjtuNiJUFdLopDVTuhds4B', name: 'Medical Reimbursment.pdf', desc: 'Location: Medical Reimbursment.pdf', category: 'medical' },
+  { id: '1wNgMONuE-x1p4qTnbN3xC39qXtiNSQOZ', name: 'MP police 5.56MM INSAS MAGZINE RATE', desc: 'Location: MP police 5.56MM INSAS MAGZINE RATE', category: 'other' },
+  { id: '1iTQEhrOUhb2OytmbCuBeNnoefjVmbIkK', name: 'NATICE 41 170Cr.pcPRAROOP.docx', desc: 'Location: NATICE 41 170Cr.pcPRAROOP.docx', category: 'other' },
+  { id: '1BdfS6f7M6pROl2Fcwe--gR6ChCf2MRGj', name: 'NBW, 82 CRPC, 83 CRPC PRAROP.docx', desc: 'Location: NBW, 82 CRPC, 83 CRPC PRAROP.docx', category: 'other' },
+  { id: '1dsEsQ27HAYQKtSYaVpHj-q21RXbwRVv2', name: 'NDPS विधि विज्ञान प्रयोगशाला.docx', desc: 'Location: NDPS विधि विज्ञान प्रयोगशाला.docx', category: 'other' },
+  { id: '1xJQdErSlGJR2dc0LyTaePLgVuZZpMVJa', name: 'night pass.docx', desc: 'Location: night pass.docx', category: 'other' },
+  { id: '1GMT_zwWt-iX-KILArQpHTuHh4pBQ155A', name: 'Police shiksha Nidhi.pdf', desc: 'Location: Police shiksha Nidhi.pdf', category: 'other' },
+  { id: '1JLjhduu2HESZSOduVX-owoEsuJt0fYAh', name: 'Police welfare fund.pdf', desc: 'Location: Police welfare fund.pdf', category: 'other' },
+  { id: '12rr1NZdH-jcZWFOr35BL0sDJZ65-HOWD', name: 'Praroop Reminder.docx', desc: 'Location: Praroop Reminder.docx', category: 'other' },
+  { id: '1z1w-ZhrnR61SKJNBFToXW78_PD5mdnxG', name: 'praroop vahan talas gasti.docx', desc: 'Location: praroop vahan talas gasti.docx', category: 'other' },
+  { id: '1oVrGLNvRhxENQ1MNtVPs8MUKJH82U_il', name: 'prarup 34 p act.docx', desc: 'Location: prarup 34 p act.docx', category: 'rules' },
+  { id: '1sRf4qR9kBvU20GQX7VjZLFFffadK2b8M', name: 'prarup jamanat muchalka.pdf', desc: 'Location: prarup jamanat muchalka.pdf', category: 'other' },
+  { id: '1GobItP-ZP2SxhNWCg24YxAJTaO2z3kbh', name: 'PVR_Questionnaire_CA_new.pdf', desc: 'Location: PVR_Questionnaire_CA_new.pdf', category: 'other' },
+  { id: '1IXZh4VPm8Ho-uVtKGNADLNisKbCRF6na', name: 'PVR_Questionnaire_CA_PA 5Years_new.pdf', desc: 'Location: PVR_Questionnaire_CA_PA 5Years_new.pdf', category: 'other' },
+  { id: '1Pv6DD2GXdM2trayQfUHuZXSuPF5LFUR8', name: 'RETD I CARD PROFORMA.pdf', desc: 'Location: RETD I CARD PROFORMA.pdf', category: 'other' },
+  { id: '1s4UF8tGkNb8u7DvUNDH2AAtpWHw5xiGi', name: 'RTI सूचना थाना निवाड़ी गाजियाबाद', desc: 'Location: RTI सूचना थाना निवाड़ी गाजियाबाद', category: 'other' },
+  { id: '1pH1YaSIRkCnWpcVv09wH702NqZcNO5RT', name: 'sbi police salary account.pdf', desc: 'Location: sbi police salary account.pdf', category: 'salary' },
+  { id: '14ObQqEo74eOJ3-zi9tgN8G1JNyRm4GLr', name: 'Scholarship.pdf', desc: 'Location: Scholarship.pdf', category: 'other' },
+  { id: '1IT82eI_6_DkpTcGUb2OudLlYu9ze3Svb', name: 'T.D. A.pdf', desc: 'Location: T.D. A.pdf', category: 'other' },
+  { id: '19quLKe2rXm_p21rSUxGIHErWjhex0a9g', name: 'TA DA नक्शा नागरिक पुलिस.pdf', desc: 'Location: TA DA नक्शा नागरिक पुलिस.pdf', category: 'salary' },
+  { id: '1nDxN6ikWNj8Vv_HwafdVDHfM0hJFoxJh', name: 'TOTAL BLANK PRAROOP 2020.doc', desc: 'Location: TOTAL BLANK PRAROOP 2020.doc', category: 'other' },
+  { id: '1jSuGiZBI6nbCRinrOMsgIY2bNePcbg_1', name: 'uppolice LTC Rules.pdf', desc: 'Location: uppolice LTC Rules.pdf', category: 'rules' },
+  { id: '1u94qCQHjbjEwdz9Va2PPi6-Fa79e_i_U', name: 'अंगुष्ठ छाप ब्यूरो प्रारुप.docx', desc: 'Location: अंगुष्ठ छाप ब्यूरो प्रारुप.docx', category: 'other' },
+  { id: '18qCUJtz8BCKcRzcdgtP5wZZKdBgF4NPJ', name: 'आर्थिक सहायता हेतु Sc ST.docx', desc: 'Location: आर्थिक सहायता हेतु Sc ST.docx', category: 'other' },
+  { id: '11Q5ifravwIhWiS2J2oNwyMLXe4UPJyU-', name: 'उत्_तर_प्रदेश_के_75_जनपदों_एवं_कमिश्_नरी_के_सीए_,_बडे_बाबू_,_पेशकार.pdf', desc: 'Location: उत्_तर_प्रदेश_के_75_जनपदों_एवं_कमिश्_नरी_के_सीए_,_बडे_बाबू_,_पेशकार.pdf', category: 'other' },
+  { id: '1PEzSbs1ig2Kjf8TWdqeThTW4aXdNVpZX', name: 'कम्प्यूटराइज्ड_परिचय_पत्र_फार्म.pdf', desc: 'Location: कम्प्यूटराइज्ड_परिचय_पत्र_फार्म.pdf', category: 'other' },
+  { id: '1hwrDjniKIdAsTcTU1g1_4r-Po73-HprC', name: 'कॉल डिटेल मांगपत्र CDR.docx', desc: 'Location: कॉल डिटेल मांगपत्र CDR.docx', category: 'other' },
+  { id: '18X5MYhORulFqQKCE3QjGgiwlA1LZFMjM', name: 'कॉल डिटेल मांगपत्र CDR.pdf', desc: 'Location: कॉल डिटेल मांगपत्र CDR.pdf', category: 'other' },
+  { id: '1L1hYXWlWK107XjDPMYsCkV4bDvpJAsur', name: 'गैर हाजिरी जवाब प्रारुप.docx', desc: 'Location: गैर हाजिरी जवाब प्रारुप.docx', category: 'other' },
+  { id: '1aPxGJ87CR3UuDaGr5OlX7zq7V2r4Tm-Y', name: 'चिकित्सा प्रतिपूर्ति प्रपत्र मेडिकल का पैसा.pdf', desc: 'Location: चिकित्सा प्रतिपूर्ति प्रपत्र मेडिकल का पैसा.pdf', category: 'other' },
+  { id: '1DszentL62_WFwT3rEq4nCyMkgjXSXaZI', name: 'चिठ्ठी मजरुबी medical praroop.docx', desc: 'Location: चिठ्ठी मजरुबी medical praroop.docx', category: 'other' },
+  { id: '1JV6DGyumDbDFaDwMSSkV9FsP4ZplrDCw', name: 'जमानत मुचलका (1).pdf', desc: 'Location: जमानत मुचलका (1).pdf', category: 'other' },
+  { id: '1ElAEDrvwUeHwdtM8f0NkqwCz_Q9xPqsR', name: 'जीपनेट वाहन चोरी प्रारूप.docx', desc: 'Location: जीपनेट वाहन चोरी प्रारूप.docx', category: 'other' },
+  { id: '1YnFIrgAF70hAnCcayLXYa0mSFJr3VspY', name: 'डाक्टरी मुआयना.docx', desc: 'Location: डाक्टरी मुआयना.docx', category: 'other' },
+  { id: '1m31ORksWLmzLcoyINTq477v5WxaGz0N3', name: 'डी० ए० दर .pdf', desc: 'Location: डी० ए० दर .pdf', category: 'other' },
+  { id: '1nWUSwYUBinrpYHYz2KIKTv8Nn4TGXRHa', name: 'डोजियर प्रारूप.docx', desc: 'Location: डोजियर प्रारूप.docx', category: 'other' },
+  { id: '1f6tEVWiQG7JnmEmyCJgUXE_XTGPiV6b1', name: 'तनकी प्रारूप.docx', desc: 'Location: तनकी प्रारूप.docx', category: 'other' },
+  { id: '1QKLARw-VCt09sjpo95RpNpmOHamodyPK', name: 'दंड और अपील.pdf', desc: 'Location: दंड और अपील.pdf', category: 'other' },
+  { id: '1I7olqyuK0R5sAj4DZWnfZs8HuzlXwRS6', name: 'नक्शा रिवार्ड.docx', desc: 'Location: नक्शा रिवार्ड.docx', category: 'other' },
+  { id: '1z0PzNvm9sCXU6hXVQStCmTiHsqDtWWVu', name: 'नया प्रारूप जाँच प्रार्थना पत्र.pdf', desc: 'Location: नया प्रारूप जाँच प्रार्थना पत्र.pdf', category: 'other' },
+  { id: '1lD8PZdEEJTSgJieM64magh8Xzco4AsaH', name: 'नोटिस अन्तर्गत धारा 149 द0प्र0सं0.docx', desc: 'Location: नोटिस अन्तर्गत धारा 149 द0प्र0सं0.docx', category: 'other' },
+  { id: '1sWfD4Do2_xtd1xY_aFZr8oRjZyRPZWpd', name: 'नोटिस धारा 111 सीआरपीसी.docx', desc: 'Location: नोटिस धारा 111 सीआरपीसी.docx', category: 'other' },
+  { id: '1iTgsTeL9aNW14E_s09uOwTVSsfm_vFhx', name: 'नोटिस वादी.docx', desc: 'Location: नोटिस वादी.docx', category: 'other' },
+  { id: '1D_saejuhJ5rrnawkucQseKZMQ2irsrB1', name: 'नोटिस सफीना.docx', desc: 'Location: नोटिस सफीना.docx', category: 'other' },
+  { id: '1IWnpS0uaqw07aVhOSZrRSKR774TiFsbP', name: 'पंचायतनामा.doc', desc: 'Location: पंचायतनामा.doc', category: 'other' },
+  { id: '1lnlkkQQs7JQs3g1Ko80OPGZsACcEY_Wv', name: 'पर्यवेक्षण आख्या.doc', desc: 'Location: पर्यवेक्षण आख्या.doc', category: 'other' },
+  { id: '1kLu1SXPZaz7IyTo7lp5V2mHoozoMYk9w', name: 'पुलिस कार्मिक का विवरण.docx', desc: 'Location: पुलिस कार्मिक का विवरण.docx', category: 'other' },
+  { id: '1_SFbUBbnB_I7cm1enffGCHzDNfeaMCOn', name: 'पुलिस पहचान पत्र.pdf', desc: 'Location: पुलिस पहचान पत्र.pdf', category: 'other' },
+  { id: '1OOPHXb4LUU-8gq1B3biHRKIRkF-OUA_l', name: 'पुलिस शब्दावली.pdf', desc: 'Location: पुलिस शब्दावली.pdf', category: 'other' },
+  { id: '1ZJCP0Fb4ur08QIIc_YnXxJ2m0Q7GVztj', name: 'पूछताछ आख्या.docx', desc: 'Location: पूछताछ आख्या.docx', category: 'other' },
+  { id: '1chkSmO9uCmFFUDlGMJdh1m0SasT1EogI', name: 'प्रारुप धारा 65 बी  साक्ष्य अधिनियम.pdf', desc: 'Location: प्रारुप धारा 65 बी  साक्ष्य अधिनियम.pdf', category: 'other' },
+  { id: '1g5uCl9BHXi6wurXMNDB2h9Lalip2mSku', name: 'फार्म न0 203ए.pdf', desc: 'Location: फार्म न0 203ए.pdf', category: 'other' },
+  { id: '1TI1v9ScXc_dFbnezmoNT76jKoVvWP09L', name: 'बी बारण्ट प्रारूप.docx', desc: 'Location: बी बारण्ट प्रारूप.docx', category: 'other' },
+  { id: '1xkiuAJ-eq3399LOA0ecxNFoj5SfkzNUt', name: 'बी वारण्ट प्रारूप.docx', desc: 'Location: बी वारण्ट प्रारूप.docx', category: 'other' },
+  { id: '1fneMLeCyhYEv6NiAtiAOa5yl9xNeeEYM', name: 'बीट बुक .pdf', desc: 'Location: बीट बुक .pdf', category: 'other' },
+  { id: '1v0608iNKL1Kqpm6NeOFvQPAYIdid1gky', name: 'मजरूबी.docx', desc: 'Location: मजरूबी.docx', category: 'other' },
+  { id: '1sdY5jvGU5NFPgfjvL15PRGqOvTazlFXF', name: 'यात्रा दैनिक भत्ता.pdf', desc: 'Location: यात्रा दैनिक भत्ता.pdf', category: 'other' },
+  { id: '1i5wWZOBB3JVQP9MqeuY7xRLorO-iDj6O', name: 'रिपोर्ट चालानी 290 भादवि.docx', desc: 'Location: रिपोर्ट चालानी 290 भादवि.docx', category: 'other' },
+  { id: '1Z3OK4HNrh6LeILQ8iGf9L_7Fhblc6gKS', name: 'रिमाण्ड पुलिस प्रपत्र संख्या 202.docx', desc: 'Location: रिमाण्ड पुलिस प्रपत्र संख्या 202.docx', category: 'other' },
+  { id: '1VxALvKUjQnR6l5_JR3SDq9ydrlkAf3E2', name: 'वेतन विसंगति _ रिकवरी.pdf', desc: 'Location: वेतन विसंगति _ रिकवरी.pdf', category: 'other' },
+  { id: '1roKz_2hFiYEBRw8GOtwHOXs9TQ_LU2Zl', name: 'शव विच्छेदन मजिस्ट्रेट.docx', desc: 'Location: शव विच्छेदन मजिस्ट्रेट.docx', category: 'other' },
+  { id: '1QAl0M9Ra741TzMtB5-0EJ-dsjjfNG2xZ', name: 'स्थानान्तरण प्रारूप.docx', desc: 'Location: स्थानान्तरण प्रारूप.docx', category: 'other' },
+  { id: '11u8gdUWDEwvec293KGayU8kLzvqRzzdE', name: 'स्मृतिपत्र विधि विज्ञान.docx', desc: 'Location: स्मृतिपत्र विधि विज्ञान.docx', category: 'other' },
+];
+
+    // UI Elements
+    const searchInput = document.getElementById('searchInput');
+    const documentGrid = document.getElementById('documentGrid');
+    const resultsCount = document.getElementById('resultsCount');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+
+    let currentCategory = 'all';
+    
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    function renderDocuments(query = '') {
+      const lowerQuery = query.toLowerCase();
+      
+      const filtered = ALL_DOCS.filter(doc => {
+        const matchesQuery = doc.name.toLowerCase().includes(lowerQuery) || doc.desc.toLowerCase().includes(lowerQuery);
+        const matchesCategory = (currentCategory === 'all' || doc.category === currentCategory);
+        return matchesQuery && matchesCategory;
+      });
+
+      resultsCount.textContent = `Showing ${filtered.length} of ${ALL_DOCS.length} documents`;
+
+      if (filtered.length === 0) {
+        documentGrid.innerHTML = `
+          <div class="col-span-full py-12 text-center bg-white rounded-2xl border border-dashed border-slate-300">
+            <i data-lucide="file-x" class="w-12 h-12 text-slate-300 mx-auto mb-3"></i>
+            <h3 class="text-lg font-medium text-slate-700">No documents found</h3>
+            <p class="text-slate-500">Try adjusting your search keywords.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      const html = filtered.map(doc => {
+        // Highlighting logic
+        let displayName = doc.name;
+        if (query) {
+          const esc = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+          const re = new RegExp(`(${esc})`, 'gi');
+          displayName = doc.name.replace(re, '<mark class="bg-brand-100 text-brand-900 rounded px-1">$1</mark>');
+        }
+
+        const driveUrl = doc.customUrl ? doc.customUrl : `https://drive.google.com/file/d/${doc.id}/view?usp=drivesdk`;
+        
+        let icon = 'file-text';
+        if(doc.name.toLowerCase().includes('pdf')) icon = 'file-type-2';
+        if(doc.name.toLowerCase().includes('xls')) icon = 'table';
+        if(doc.name.toLowerCase().includes('jpg') || doc.name.toLowerCase().includes('png')) icon = 'image';
+
+        return `
+          <div class="doc-card bg-white p-5 rounded-2xl border border-slate-200 flex flex-col h-full">
+            <div class="flex items-start gap-3 mb-3">
+              <div class="p-2 bg-slate-100 rounded-lg text-slate-600 shrink-0">
+                <i data-lucide="${icon}" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="font-semibold text-slate-800 line-clamp-2 leading-tight" title="${doc.name}">${displayName}</h3>
+                <span class="inline-block mt-2 px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded-full uppercase tracking-wider font-semibold">${doc.category}</span>
+              </div>
+            </div>
+            
+            <div class="mt-auto pt-4 flex gap-2">
+              <a href="${driveUrl}" target="_blank" class="flex-1 inline-flex justify-center items-center gap-1.5 py-2 bg-brand-50 text-brand-700 hover:bg-brand-600 hover:text-white rounded-xl text-sm font-medium transition-colors">
+                <i data-lucide="external-link" class="w-4 h-4"></i> View File
+              </a>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      documentGrid.innerHTML = html;
+      lucide.createIcons();
+    }
+
+    // Event Listeners
+    searchInput.addEventListener('input', (e) => renderDocuments(e.target.value));
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        // Update styling
+        filterBtns.forEach(b => {
+          b.classList.remove('bg-brand-600', 'text-white');
+          b.classList.add('bg-white', 'text-slate-600');
+        });
+        const target = e.currentTarget;
+        target.classList.remove('bg-white', 'text-slate-600');
+        target.classList.add('bg-brand-600', 'text-white');
+        
+        currentCategory = target.dataset.cat;
+        renderDocuments(searchInput.value);
+      });
+    });
+
+    // Initial render
+    renderDocuments();
+  </script>
+</body>
+</html>
