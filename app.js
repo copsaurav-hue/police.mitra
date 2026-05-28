@@ -36,6 +36,7 @@ window.appState = {
     { id: 1, time: '13:40', text: 'Secure session initiated by officer.', category: 'system' }
   ],
   recentTools: ['ip_tracker', 'phone_lookup', 'imei_lookup'],
+  visits: 0,
   mobileSidebarOpen: false,
   notificationDrawerOpen: false,
   videoModalOpen: false,
@@ -122,7 +123,26 @@ window.initApp = function() {
   
   // Check for new YouTube video
   setTimeout(checkNewVideoPopup, 2000);
+  
+  // Fetch live page visit counter
+  fetchVisitsCount();
 };
+
+async function fetchVisitsCount() {
+  try {
+    const res = await fetch('https://api.counterapi.dev/v1/police-mitra/visits/up');
+    const data = await res.json();
+    if (data && data.count) {
+      window.appState.visits = data.count;
+      const el1 = document.getElementById('pm-page-counter');
+      if (el1) el1.textContent = String(data.count).padStart(5, '0');
+      const el2 = document.getElementById('pm-mobile-page-counter');
+      if (el2) el2.textContent = String(data.count).padStart(5, '0');
+    }
+  } catch (e) {
+    console.error("Failed to fetch page visit counter", e);
+  }
+}
 
 function applyBodyBackground() {
   const body = document.body;
@@ -624,6 +644,29 @@ function renderApp() {
               `;
             }).join('')}
           </nav>
+          
+          <div class="p-4 border-t ${isDark ? 'border-slate-800 bg-slate-950/20' : 'border-slate-200 bg-slate-50'}">
+            <div class="flex items-center gap-3 w-full p-1 min-w-0">
+              <div class="h-8 w-8 rounded-full bg-cyber-blue/10 flex items-center justify-center shrink-0 border border-cyber-blue/20">
+                <i data-lucide="user" class="h-4 w-4 text-cyber-blue"></i>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-xs font-bold truncate text-white">UP Police Desk</p>
+                <p class="text-[9px] truncate text-slate-500 uppercase font-mono">Duty Roster Active</p>
+              </div>
+            </div>
+            <div class="w-full mt-3 pt-3 border-t ${isDark ? 'border-slate-800/80' : 'border-slate-200'} font-mono text-[9px] text-slate-500 flex flex-col gap-1.5">
+              <div class="flex items-center justify-between">
+                <span class="flex items-center gap-1">
+                  <span class="h-1.5 w-1.5 rounded-full bg-cyber-success animate-pulse shrink-0"></span>
+                  <span>PORTAL TRAFFIC VISITS</span>
+                </span>
+                <span class="text-cyber-blue font-bold px-1.5 py-0.5 rounded bg-cyber-blue/15 border border-cyber-blue/20 tracking-wider font-mono text-[10px]" id="pm-mobile-page-counter">
+                  ${String(window.appState.visits || 0).padStart(5, '0')}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -676,28 +719,27 @@ function renderApp() {
           }).join('')}
         </nav>
 
-        <div class="p-4 border-t flex justify-center items-center ${isDark ? 'border-slate-800 bg-slate-950/20' : 'border-slate-200 bg-slate-50'}">
-          ${collapsed ? `
-            <div class="flex items-center gap-3 w-full p-1 min-w-0">
-              <div class="h-8 w-8 rounded-full bg-cyber-blue/10 flex items-center justify-center shrink-0 border border-cyber-blue/20">
-                <i data-lucide="user" class="h-4 w-4 text-cyber-blue"></i>
-              </div>
-              <div class="min-w-0 flex-1 hidden group-hover:block transition-all duration-200">
-                <p class="text-xs font-bold truncate text-white">UP Police Desk</p>
-                <p class="text-[9px] truncate text-slate-500 uppercase font-mono">Duty Roster Active</p>
-              </div>
+        <div class="p-4 border-t flex flex-col justify-center items-center ${isDark ? 'border-slate-800 bg-slate-950/20' : 'border-slate-200 bg-slate-50'}">
+          <div class="flex items-center gap-3 w-full p-1 min-w-0">
+            <div class="h-8 w-8 rounded-full bg-cyber-blue/10 flex items-center justify-center shrink-0 border border-cyber-blue/20">
+              <i data-lucide="user" class="h-4 w-4 text-cyber-blue"></i>
             </div>
-          ` : `
-            <div class="flex items-center gap-3 w-full p-1 min-w-0">
-              <div class="h-8 w-8 rounded-full bg-cyber-blue/10 flex items-center justify-center shrink-0 border border-cyber-blue/20">
-                <i data-lucide="user" class="h-4 w-4 text-cyber-blue"></i>
-              </div>
-              <div class="min-w-0 flex-1">
-                <p class="text-xs font-bold truncate text-white">UP Police Desk</p>
-                <p class="text-[9px] truncate text-slate-500 uppercase font-mono">Duty Roster Active</p>
-              </div>
+            <div class="min-w-0 flex-1 ${collapsed ? 'hidden group-hover:block' : ''} transition-all duration-200">
+              <p class="text-xs font-bold truncate text-white">UP Police Desk</p>
+              <p class="text-[9px] truncate text-slate-500 uppercase font-mono">Duty Roster Active</p>
             </div>
-          `}
+          </div>
+          <div class="w-full ${collapsed ? 'hidden group-hover:block' : ''} mt-3 pt-3 border-t ${isDark ? 'border-slate-800/80' : 'border-slate-200'} font-mono text-[9px] text-slate-500 flex flex-col gap-1.5">
+            <div class="flex items-center justify-between">
+              <span class="flex items-center gap-1">
+                <span class="h-1.5 w-1.5 rounded-full bg-cyber-success animate-pulse shrink-0"></span>
+                <span>PORTAL TRAFFIC VISITS</span>
+              </span>
+              <span class="text-cyber-blue font-bold px-1.5 py-0.5 rounded bg-cyber-blue/15 border border-cyber-blue/20 tracking-wider font-mono text-[10px]" id="pm-page-counter">
+                ${String(window.appState.visits || 0).padStart(5, '0')}
+              </span>
+            </div>
+          </div>
         </div>
       </aside>
 
