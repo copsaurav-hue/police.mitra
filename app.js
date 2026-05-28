@@ -749,8 +749,9 @@ function renderApp() {
         <header class="h-16 border-b flex items-center justify-between px-6 shrink-0 z-30 shadow-md ${isDark ? 'bg-cyber-900 border-slate-800' : 'bg-white border-slate-200'}">
           <div class="flex items-center gap-4">
             <!-- Mobile Menu Toggle -->
-            <button onclick="toggleMobileSidebar()" class="md:hidden p-2 rounded-lg border text-cyber-blue hover:text-white transition-all bg-cyber-blue/10 border-cyber-blue/20 shrink-0">
-              <i data-lucide="menu" class="h-5 w-5"></i>
+            <button onclick="toggleMobileSidebar()" class="md:hidden flex items-center gap-2 py-2 px-3.5 rounded-xl border text-cyber-blue hover:text-white transition-all bg-cyber-blue/10 border-cyber-blue/30 shrink-0 shadow-[0_0_12px_rgba(0,240,255,0.25)] animate-pulse">
+              <i data-lucide="menu" class="h-4.5 w-4.5 shrink-0"></i>
+              <span class="text-[9px] font-extrabold font-mono tracking-wider uppercase">ALL TOOLS / मेन्यू</span>
             </button>
             <div class="hidden sm:flex flex-col">
               <span class="text-[10px] font-bold tracking-widest text-cyber-blue uppercase font-mono">${t('govLabel')}</span>
