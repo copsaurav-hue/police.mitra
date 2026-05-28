@@ -607,7 +607,7 @@ function renderApp() {
   ];
 
   container.innerHTML = `
-    <div class="flex w-full overflow-hidden" style="height:100vh;${isDark ? 'background:#050B14;color:#f1f5f9;' : 'background:#f8fafc;color:#1e293b;'}">
+    <div class="flex w-full overflow-x-hidden overflow-y-auto md:overflow-hidden min-h-screen md:h-screen" style="${isDark ? 'background:#050B14;color:#f1f5f9;' : 'background:#f8fafc;color:#1e293b;'}">
       
       <!-- MOBILE SIDEBAR OVERLAY -->
       <div id="pm-mobile-sidebar" class="fixed inset-0 z-50 flex md:hidden ${window.appState.mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-out shadow-2xl">
